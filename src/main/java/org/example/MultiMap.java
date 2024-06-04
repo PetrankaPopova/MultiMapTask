@@ -6,26 +6,32 @@ import java.util.HashMap;
 import java.util.List;
 
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 /**
- * A MultiMap implementation that allows multiple values per key.
- * This implementation is not thread-safe.
+ * A thread-safe MultiMap implementation that allows multiple values per key.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
 public class MultiMap<K, V> {
-    private final HashMap<K, List<V>> map;
+    private final Map<K, List<V>> map;
 
     /**
      * Constructs an empty MultiMap.
      */
     public MultiMap() {
-        this.map = new HashMap<>();
+        this.map = new ConcurrentHashMap<>();
     }
 
     /**
      * Returns a list of values to which the specified key is mapped,
      * or an empty list if this map contains no mapping for the key.
+     *
      * @param key the key whose associated values are to be returned
      * @return a list of values to which the specified key is mapped
      */
@@ -42,7 +48,7 @@ public class MultiMap<K, V> {
      * @param value value to be associated with the specified key
      */
     public void put(K key, V value) {
-        map.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+        map.computeIfAbsent(key, k -> new CopyOnWriteArrayList<>()).add(value);
     }
 
     @Override
