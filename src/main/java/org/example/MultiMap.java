@@ -26,7 +26,6 @@ public class MultiMap<K, V> {
     /**
      * Returns a list of values to which the specified key is mapped,
      * or an empty list if this map contains no mapping for the key.
-     *
      * @param key the key whose associated values are to be returned
      * @return a list of values to which the specified key is mapped
      */
