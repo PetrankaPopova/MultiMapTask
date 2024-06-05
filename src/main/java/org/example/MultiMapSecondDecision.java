@@ -23,6 +23,10 @@ import java.util.concurrent.atomic.AtomicReference;
             this.mapRef = mapRef;
         }
 
+        public MultiMapSecondDecision(Map<String, List<String>> initialMap, AtomicReference<Map<K, List<V>>> mapRef) {
+            this.mapRef = mapRef;
+        }
+
         /**
          * Retrieves the list of values associated with a specific key.
          * If the key doesn't exist in the map, an empty list is returned.
@@ -48,24 +52,19 @@ import java.util.concurrent.atomic.AtomicReference;
          * @param value the value to be stored (of type `V`)
          */
         public void put(K key, V value) {
-            /**
-             * This method associates a new value with a specific key in the MultiMap.
-             * If the key already exists, the new value is appended to the existing list of values.
-             * If the key doesn't exist, a new list is created and the value is added to it.
-             * This ensures that multiple values can be associated with a single key.
-             */
             while (true) {
                 Map<K, List<V>> currentMap = mapRef.get();
-                List<V> values = currentMap.getOrDefault(key, new ArrayList<>());
-                values.add(value);
-                Map<K, List<V>> newMap = new HashMap<>(currentMap);
-                newMap.put(key, values);
-                if (mapRef.compareAndSet(currentMap, newMap)) {
-                    return;
+                synchronized (mapRef) {
+                    Map<K, List<V>> newMap = new HashMap<>(currentMap);
+                    List<V> values = newMap.getOrDefault(key, new ArrayList<>());
+                    values.add(value);
+                    newMap.put(key, values);
+                    if (mapRef.compareAndSet(currentMap, newMap)) {
+                        return;
+                    }
                 }
             }
         }
-
         @Override
         public String toString() {
             return "MultiMap{" +

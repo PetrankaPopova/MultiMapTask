@@ -2,11 +2,6 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-
-
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,16 +22,16 @@ public class MultiMap<K, V> {
     public MultiMap() {
         this.map = new ConcurrentHashMap<>();
     }
-
     /**
-     * Returns a list of values to which the specified key is mapped,
+     * Returns a shallow copy of the list of values to which the specified key is mapped,
      * or an empty list if this map contains no mapping for the key.
      *
      * @param key the key whose associated values are to be returned
-     * @return a list of values to which the specified key is mapped
+     * @return a shallow copy of the list of values to which the specified key is mapped
      */
     public List<V> get(K key) {
-        return map.getOrDefault(key, Collections.emptyList());
+        List<V> originalList = map.getOrDefault(key, Collections.emptyList());
+        return new ArrayList<>(originalList);
     }
 
     /**
@@ -44,11 +39,20 @@ public class MultiMap<K, V> {
      * If the map previously contained a mapping for the key, the new value
      * is appended to the list of existing values.
      *
-     * @param key key with which the specified value is to be associated
+     * @param key   key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      */
     public void put(K key, V value) {
-        map.computeIfAbsent(key, k -> new CopyOnWriteArrayList<>()).add(value);
+        map.compute(key, (k, vList) -> {
+            if (vList == null) {
+                List<V> newList = new CopyOnWriteArrayList<>();
+                newList.add(value);
+                return newList;
+            } else {
+                vList.add(value);
+                return vList;
+            }
+        });
     }
 
     @Override
